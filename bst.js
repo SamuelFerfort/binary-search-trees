@@ -8,11 +8,79 @@ class Node {
 
 class Tree {
   constructor(array) {
-    this.root = buildTree(array.sort());
+    this.root = buildTree(sortAndRemoveDuplicates(array));
   }
-  insert(value) {}
+  insert(value) {
+    // if tree is empty insert value as root
+    if (!this.root) {
+      this.root = new Node(value);
+      return;
+    }
+    let currentNode = this.root;
 
-  deleteItem(value) {}
+    while (currentNode !== null) {
+      if (value < currentNode.data) {
+        if (currentNode.left === null) {
+          currentNode.left = new Node(value);
+          return;
+        }
+        currentNode = currentNode.left;
+      } else if (value > currentNode.data) {
+        if (currentNode.right === null) {
+          currentNode.right = new Node(value);
+          return;
+        }
+        currentNode = currentNode.right;
+      } else {
+        return; // duplicate, exit function
+      }
+    }
+  }
+
+  deleteItem(value, currentNode = this.root) {
+    if (currentNode === null) {
+      return currentNode;
+    }
+    if (value < currentNode.data) {
+      currentNode.left = this.deleteItem(value, currentNode.left);
+    } else if (value > currentNode.data) {
+      currentNode.right = this.deleteItem(value, currentNode.right);
+    } else {
+      // we found the value to delete
+
+      // One children
+      if (currentNode.left === null) return currentNode.right;
+      if (currentNode.right === null) return currentNode.left;
+
+      // Two children case
+      currentNode.data = this.minValue(currentNode.right); // Navigate till the left end of the right subtree
+      currentNode.right = this.deleteItem(currentNode.data, currentNode.right);
+    }
+    return currentNode;
+  }
+  minValue(node) {
+    let minV = node.data;
+    while (node.left !== null) {
+      minV = node.left.data;
+      node = node.left;
+    }
+    return minV;
+  }
+  find(value) {
+    if (this.root === null) return;
+
+    let node = this.root;
+    while (node !== null) {
+      if (value < node.data) {
+        node = node.left;
+      } else if (value > node.data) {
+        node = node.right;
+      } else if (value === node.data) {
+        return node;
+      }
+    }
+    return null;
+  }
 }
 
 function buildTree(array) {
@@ -29,8 +97,6 @@ function buildTree(array) {
   return node;
 }
 
-let array = [1, 7, 4, 23, 8, 9, 4, 3, 5, 7, 9, 67, 6345, 324];
-
 function sortAndRemoveDuplicates(array) {
   array.sort((a, b) => a - b);
   let values = new Set();
@@ -40,10 +106,6 @@ function sortAndRemoveDuplicates(array) {
 
   return [...values];
 }
-
-array = sortAndRemoveDuplicates(array);
-
-console.log(array);
 
 const prettyPrint = (node, prefix = "", isLeft = true) => {
   if (node === null) {
@@ -58,4 +120,26 @@ const prettyPrint = (node, prefix = "", isLeft = true) => {
   }
 };
 
-prettyPrint(buildTree(array));
+// Create a new tree
+const tree = new Tree([5, 3, 7, 2, 4, 6, 8]);
+
+// Insertion tests
+tree.insert(1); // Insert a new node with value 1
+tree.insert(9); // Insert a new node with value 9
+
+console.log("After insertions:", prettyPrint(tree.root));
+
+// Deletion tests
+tree.deleteItem(2); // Delete a node with value 2 (no children)
+tree.deleteItem(7); // Delete a node with value 7 (one child)
+tree.deleteItem(5); // Delete the root node with value 5 (two children)
+console.log("After deletions:", prettyPrint(tree.root));
+
+// Search for existing values
+console.log("Searching for existing values:");
+console.log("Searching for 3:", tree.find(3)); // Should return the node with value 3
+console.log("Searching for 9:", tree.find(9)); // Should return the node with value 9
+
+// Search for non-existing value
+console.log("Searching for non-existing value:");
+console.log("Searching for 10:", tree.find(10)); // Should return null

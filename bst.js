@@ -81,6 +81,131 @@ class Tree {
     }
     return null;
   }
+
+  height(node = this.root) {
+    if (!node) return 0;
+    let leftHeight = this.height(node.left);
+    let rightHeight = this.height(node.right);
+    return Math.max(leftHeight, rightHeight) + 1;
+  }
+
+  depth(node, current = tree.root) {
+    if (!current) return null;
+    let edges = 0;
+    while (current) {
+      if (node.data < current.data) {
+        current = current.left;
+      } else if (node.data > current.data) {
+        current = current.right;
+      } else if (current.data === node.data) {
+        return edges;
+      }
+      edges++;
+    }
+    return null;
+  }
+  depthRec(node, current = this.root, depth = 0) {
+    if (!current) return null;
+
+    if (current.data === node.data) return depth;
+
+    if (node.data < current.data) {
+      return this.depthRec(node, current.left, depth + 1);
+    } else {
+      return this.depthRec(node, current.right, depth + 1);
+    }
+  }
+  isBalanced(node = this.root) {
+    if (!node) return true;
+
+    let leftHeight = this.height(node.left);
+    let rightHeight = this.height(node.right);
+
+    if (Math.abs(leftHeight - rightHeight) > 1) {
+      return false;
+    }
+
+    // Recursively check for balance in left and right subtrees
+    return this.isBalanced(node.left) && this.isBalanced(node.right);
+  }
+
+  reBalance() {
+    this.root = buildTree(this.inOrder());
+  }
+  levelOrder(callback) {
+    let root = this.root;
+    const result = [];
+    const q = [];
+    q.push(root);
+    while (q.length) {
+      let current = q.shift();
+
+      if (callback && typeof callback === "function") {
+        callback(current.data);
+      } else {
+        result.push(current.data);
+      }
+
+      if (current.left != null) q.push(current.left);
+      if (current.right != null) q.push(current.right);
+    }
+    return result;
+  }
+  levelOrderRec(callback, q = [this.root]) {
+    if (!q.length) return null;
+    let current = q.shift();
+    if (callback && typeof callback === "function") {
+      callback(current.data);
+    } else {
+      console.log(current.data);
+    }
+
+    if (current.left) q.push(current.left);
+
+    if (current.right) q.push(current.right);
+
+    this.levelOrderRec(callback, q);
+  }
+
+  inOrder(callback, result = [], node = this.root) {
+    if (!node) return null;
+
+    this.inOrder(callback, result, node.left);
+
+    if (callback && typeof callback === "function") {
+      callback(node.data);
+    } else {
+      result.push(node.data);
+    }
+
+    this.inOrder(callback, result, node.right);
+    return result;
+  }
+  preOrder(callback, result = [], node = this.root) {
+    if (!node) return null;
+
+    if (callback && typeof callback === "function") {
+      callback(node.data);
+    } else {
+      result.push(node.data);
+    }
+
+    this.preOrder(callback, result, node.left);
+    this.preOrder(callback, result, node.right);
+    return result;
+  }
+  postOrder(callback, result = [], node = this.root) {
+    if (!node) return null;
+
+    this.postOrder(callback, result, node.left);
+    this.postOrder(callback, result, node.right);
+    if (callback && typeof callback === "function") {
+      callback(node.data);
+    } else {
+      result.push(node.data);
+    }
+    return result;
+  }
 }
 
 function buildTree(array) {
@@ -120,26 +245,61 @@ const prettyPrint = (node, prefix = "", isLeft = true) => {
   }
 };
 
-// Create a new tree
-const tree = new Tree([5, 3, 7, 2, 4, 6, 8]);
 
-// Insertion tests
-tree.insert(1); // Insert a new node with value 1
-tree.insert(9); // Insert a new node with value 9
 
-console.log("After insertions:", prettyPrint(tree.root));
+// Function to generate an array of random numbers less than 100
+function getRandomNumbers(size) {
+  const numbers = [];
+  for (let i = 0; i < size; i++) {
+    numbers.push(Math.floor(Math.random() * 100));
+  }
+  return numbers;
+}
 
-// Deletion tests
-tree.deleteItem(2); // Delete a node with value 2 (no children)
-tree.deleteItem(7); // Delete a node with value 7 (one child)
-tree.deleteItem(5); // Delete the root node with value 5 (two children)
-console.log("After deletions:", prettyPrint(tree.root));
+// Function to print elements
+function printElements(label, elements) {
+  console.log(`${label}: ${elements.join(", ")}`);
+}
 
-// Search for existing values
-console.log("Searching for existing values:");
-console.log("Searching for 3:", tree.find(3)); // Should return the node with value 3
-console.log("Searching for 9:", tree.find(9)); // Should return the node with value 9
+// Create a new BST
+const tree = new Tree(getRandomNumbers(10));
 
-// Search for non-existing value
-console.log("Searching for non-existing value:");
-console.log("Searching for 10:", tree.find(10)); // Should return null
+// Check if the tree is balanced
+console.log("Is the tree balanced (initially):", tree.isBalanced());
+
+// Print elements in level, pre, in, and post order
+printElements("Level order:", tree.levelOrder());
+printElements("Pre order:", tree.preOrder());
+printElements("In order:", tree.inOrder());
+printElements("Post order:", tree.postOrder());
+
+
+prettyPrint(tree.root)
+// Unbalance the tree by adding large numbers
+console.log("\nUnbalancing the tree...");
+tree.insert(150);
+tree.insert(200);
+tree.insert(250);
+
+prettyPrint(tree.root)
+
+// Check if the tree is balanced (after unbalancing)
+console.log("Is the tree balanced (after unbalancing):", tree.isBalanced());
+
+
+
+// Rebalance the tree
+console.log("\nRebalancing the tree...");
+tree.reBalance();
+
+
+// Check if the tree is balanced (after rebalancing)
+console.log("Is the tree balanced (after rebalancing):", tree.isBalanced());
+
+prettyPrint(tree.root)
+
+// Print elements in level, pre, in, and post order (after rebalancing)
+printElements("\nLevel order (after rebalancing):", tree.levelOrder());
+printElements("Pre order (after rebalancing):", tree.preOrder());
+printElements("In order (after rebalancing):", tree.inOrder());
+printElements("Post order (after rebalancing):", tree.postOrder());
